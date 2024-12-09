@@ -1,0 +1,24 @@
+---
+nginx_proxy_directory: /opt/nginx-proxy
+nginx_proxy_template_path: "{{ nginx_proxy_directory }}/nginx.tmpl"
+nginx_proxy_template_version: 1.6.4
+nginx_proxy_ports:
+  - 80:80
+  - 443:443
+nginx_proxy_acme_companion_default_email: mail@example.com
+nginx_proxy_enable_ipv6: false
+nginx_proxy_network_name: proxy # If not specified default network will be used
+# depending on docker compose version and type of installation this can be docker compose or docker-compose
+nginx_proxy_docker_compose_command: docker compose
+
+# default behaviour is to combine nginx + nginx_proxy_nginx_image_version variable to get nginx image, eg. nginx:alpine by default
+# if below variable is set it will take precedence over nginx_proxy_nginx_image_version so that adding custom images is possible.
+# same goes for all images
+# nginx_proxy_nginx_image: nginx:1.27
+nginx_proxy_nginx_image_version: alpine
+
+# nginx_proxy_docker_gen_image: nginxproxy/docker-gen:0.14
+nginx_proxy_docker_gen_image_version: 0.14.4
+
+# nginx_proxy_acme_companion_image: nginxproxy/acme-companion:2.4
+nginx_proxy_acme_companion_version: 2.5.1

@@ -1,0 +1,8 @@
+---
+nginx_proxy__nginx_image: "{{ (nginx_proxy_nginx_image is defined) | ternary(nginx_proxy_nginx_image, 'nginx:' ~ nginx_proxy_nginx_image_version) }}"
+nginx_proxy__docker_gen_image: >
+  "{{ (nginx_proxy_docker_gen_image is defined) | ternary(nginx_proxy_docker_gen_image, 'nginxproxy/docker-gen:' ~ nginx_proxy_docker_gen_image_version) }}"
+nginx_proxy__acme_companion_image: >
+  "{{ (nginx_proxy_acme_companion_image is defined) | ternary(nginx_proxy_acme_companion_image, 'nginxproxy/acme-companion:' ~ nginx_proxy_acme_companion_version) }}"
+nginx_proxy__enable_ipv6: "{{ (nginx_proxy_enable_ipv6) | ternary({}, {'ENABLE_IPV6': 'false'}) }}"
+nginx_proxy__environment: "{{ nginx_proxy_environment | default({}) | combine(nginx_proxy__enable_ipv6) }}"

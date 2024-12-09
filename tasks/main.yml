@@ -1,0 +1,34 @@
+---
+- name: Create docker compose definition directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ nginx_proxy_directory }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Copy docker compose definition
+  become: true
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ nginx_proxy_directory }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Get nginx template # used for nginx and acme proxy
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/nginx-proxy/nginx-proxy/{{ nginx_proxy_template_version }}/nginx.tmpl
+    dest: "{{ nginx_proxy_template_path }}"
+    mode: "0444"
+  retries: 3
+  delay: 3
+
+- name: Start nginx proxy containers
+  become: true
+  ansible.builtin.command: "{{ nginx_proxy_docker_compose_command }} up -d"
+  args:
+    chdir: "{{ nginx_proxy_directory }}"
+  register: nginx_proxy__reg_start_containers
+  changed_when: "'Starting' in nginx_proxy__reg_start_containers.stderr"

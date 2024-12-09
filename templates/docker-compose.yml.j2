@@ -1,0 +1,65 @@
+services:
+  nginx-proxy:
+    image: {{ nginx_proxy__nginx_image }}
+    container_name: nginx-proxy
+    ports:
+{% for port in nginx_proxy_ports %}
+      - {{ port }}
+{% endfor %}
+    volumes:
+      - conf:/etc/nginx/conf.d
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - certs:/etc/nginx/certs:ro
+{% if nginx_proxy_network %}
+    networks:
+      - {{ nginx_proxy_network }}
+{% endif %}
+{% if nginx_proxy__environment | length > 0 %}
+    environment:
+{% for k, v in nginx_proxy__environment %}
+      - {{ k }}={{ v }}
+{% endfor %}
+{% endif %}
+    restart: always
+
+  docker-gen:
+    image: {{ nginx_proxy__docker_gen_image }}
+    container_name: nginx-proxy-gen
+    command: -notify-sighup nginx-proxy -watch /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - {{ nginx_proxy_template_path }}/nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - proxy
+    restart: always
+
+  acme-companion:
+    image: {{ nginx_proxy__acme_companion_image }}
+    container_name: nginx-proxy-acme
+    environment:
+      - DEFAULT_EMAIL={{ nginx_proxy_acme_companion_default_email }}
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - certs:/etc/nginx/certs:rw
+      - acme:/etc/acme.sh
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy
+    restart: always
+
+volumes:
+  conf:
+  vhost:
+  html:
+  certs:
+  acme:
+
+{% if nginx_proxy_network %}
+networks:
+  proxy:
+    name: {{ nginx_proxy_network }}
+{% endif %}
